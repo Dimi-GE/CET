@@ -80,7 +80,7 @@ void UCEL::Renumerator(const FString Spiegel, bool& bIsSucceed)
     int32 LineIDCounter = 1;
 
     // Iterate through each line starting from LineIDCounter
-    for (int32 i = LineIDCounter; i < Lines.Num(); ++i)
+    for (int32 i = LineIDCounter; i < Length; ++i)
     {
         FString& Line = Lines[i];
 
@@ -115,4 +115,90 @@ void UCEL::Renumerator(const FString Spiegel, bool& bIsSucceed)
 
     // Save the modified content back to the file
     FFileHelper::SaveStringToFile(ModifiedSpiegel, *Spiegel);
+}
+
+UAssetImportTask *UCEL::CreateImportTask(FString SourcePath, FString DestinationPath, UFactory *ExtraFactory, UObject *ExtraOptions, bool &bIsSucceed, FString &OutInfoMessage)
+{
+    // Create Import Task object
+    UAssetImportTask* TaskObj = NewObject<UAssetImportTask>();
+    if (TaskObj == nullptr)
+    {
+        bIsSucceed = false;
+        OutInfoMessage = FString::Printf(TEXT("UCEL::CreateImportTask: The TaskObj is a null pointer - returning."));
+        return nullptr;
+    }
+
+    // Set path information
+    TaskObj->Filename = SourcePath;
+    TaskObj->DestinationPath = FPaths::GetPath(DestinationPath);
+    TaskObj->DestinationName = FPaths::GetCleanFilename(DestinationPath);
+
+    // Set default options
+    TaskObj->bSave = false;
+    TaskObj->bAutomated = true;
+    TaskObj->bAsync = false;
+    TaskObj->bReplaceExisting = true;
+    TaskObj->bReplaceExistingSettings = false;
+
+    // ExtraFactory and ExtraOptions
+    TaskObj->Factory = ExtraFactory;
+    TaskObj->Options = ExtraOptions;
+
+    // Return the task object
+    bIsSucceed = true;
+    OutInfoMessage = FString::Printf(TEXT("UCEL::CreateImportTask: The TaskObj is successfully created."));
+    return TaskObj;
+}
+
+UObject *UCEL::ProcessImportTask(UAssetImportTask *ImportTask, bool &bIsSucceed, FString &OutInfoMessage)
+{
+    // Ensuring the TaskObj is not a null pointer
+    if (ImportTask == nullptr)
+    {
+        bIsSucceed = false;
+        OutInfoMessage = FString::Printf(TEXT("UCEL::ProcessImportTask: The TaskObj is a null pointer argument - returning."));
+        return nullptr;
+    }
+
+    // Get the Asset Tools Module
+    FAssetToolsModule* AssetTools = FModuleManager::LoadModulePtr<FAssetToolsModule>("AssetTools");
+    if (AssetTools == nullptr)
+    {
+        bIsSucceed = false;
+        OutInfoMessage = FString::Printf(TEXT("UCEL::ProcessImportTask: The AssetTools module is a null pointer - returning."));
+        return nullptr;
+    }
+
+    // Import the task
+    AssetTools->Get().ImportAssetTasks({ ImportTask });
+    if (ImportTask->GetObjects().Num() == 0)
+    {
+        bIsSucceed = false;
+        OutInfoMessage = FString::Printf(TEXT("UCEL::ProcessImportTask: The ImportTask has nothing to import - returning."));
+        return nullptr;
+    }
+
+    UObject* ImportedAsset = StaticLoadObject(UObject::StaticClass(), nullptr, *FPaths::Combine(ImportTask->DestinationPath, ImportTask->DestinationName));
+
+    // Return the imported asset
+    bIsSucceed = true;
+    OutInfoMessage = FString::Printf(TEXT("UCEL::ProcessImportTask: The ImportedAsset is successfully created."));
+    return ImportedAsset;
+}
+
+UObject *UCEL::ImportAsset(FString SourcePath, FString DestinationPath, bool &bIsSucceed, FString &OutInfoMessage)
+{
+    UAssetImportTask* Task = CreateImportTask(SourcePath, DestinationPath, nullptr, nullptr, bIsSucceed, OutInfoMessage);
+    if(!bIsSucceed)
+    {
+        return nullptr;
+    }
+
+    UObject* Asset = ProcessImportTask(Task, bIsSucceed, OutInfoMessage);
+    if(!bIsSucceed)
+    {
+        return nullptr;
+    }
+
+    return Asset;
 }

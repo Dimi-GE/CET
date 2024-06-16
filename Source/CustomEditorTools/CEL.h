@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Editor/UnrealEd/Public/AssetImportTask.h"
+#include "AssetToolsModule.h"
 #include "CEL.generated.h"
 
 
 class IDesktopPlatform;
 class FDesktopPlatformModule;
+class UAssetImportTask;
+class UFactory;
 /**
  * 
  */
@@ -25,4 +29,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "SpiegelEditorLibrary")
 	static void Renumerator(const FString Spiegel, bool& bIsSucceed);
+
+	UFUNCTION(BlueprintCallable, Category = "AssetsImporterLibrary")
+	static UAssetImportTask* CreateImportTask(FString SourcePath, FString DestinationPath, UFactory* ExtraFactory, UObject* ExtraOptions, bool& bIsSucceed, FString& OutInfoMessage);
+
+	UFUNCTION(BlueprintCallable, Category = "AssetsImporterLibrary")
+	static UObject* ProcessImportTask(UAssetImportTask* ImportTask, bool& bIsSucceed, FString& OutInfoMessage);
+
+	UFUNCTION(BlueprintCallable, Category = "AssetsImporterLibrary")
+	static UObject* ImportAsset(FString SourcePath, FString DestinationPath, bool& bIsSucceed, FString& OutInfoMessage);
 };
