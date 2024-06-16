@@ -13,6 +13,7 @@ class IDesktopPlatform;
 class FDesktopPlatformModule;
 class UAssetImportTask;
 class UFactory;
+class UStaticMesh;
 /**
  * 
  */
@@ -38,4 +39,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AssetsImporterLibrary")
 	static UObject* ImportAsset(FString SourcePath, FString DestinationPath, bool& bIsSucceed, FString& OutInfoMessage);
+
+	UFUNCTION(BlueprintCallable, Category = "AssetsImporterLibrary")
+	static UStaticMesh* ImportStaticMesh(FString SourcePath, FString DestinationPath, bool& bIsSucceed, FString& OutInfoMessage);
+
+
 };

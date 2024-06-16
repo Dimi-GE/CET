@@ -8,7 +8,16 @@ public class CustomEditorTools : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Slate", "SlateCore", "DesktopPlatform", "AssetTools", "UnrealEd" });
+		PublicDependencyModuleNames.AddRange(new string[] {
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"Slate",
+			"SlateCore",
+			"DesktopPlatform",
+			"AssetTools",
+			"UnrealEd" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

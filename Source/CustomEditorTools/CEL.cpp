@@ -6,6 +6,9 @@
 #include "Misc/FileHelper.h"
 #include "DesktopPlatformModule.h"
 
+#include "Factories/FbxImportUI.h"
+#include "Factories/FbxStaticMeshImportData.h"
+
 FString UCEL::OpenFolderDialog(const FString& FileTypes)
 {
     FString SelectedFile;
@@ -195,6 +198,71 @@ UObject *UCEL::ImportAsset(FString SourcePath, FString DestinationPath, bool &bI
     }
 
     UObject* Asset = ProcessImportTask(Task, bIsSucceed, OutInfoMessage);
+    if(!bIsSucceed)
+    {
+        return nullptr;
+    }
+
+    return Asset;
+}
+
+UStaticMesh *UCEL::ImportStaticMesh(FString SourcePath, FString DestinationPath, bool &bIsSucceed, FString &OutInfoMessage)
+{
+
+    UFbxImportUI* Options = NewObject<UFbxImportUI>();
+    // Default options for static mesh
+    Options->bAutomatedImportShouldDetectType = false;
+    Options->MeshTypeToImport = EFBXImportType::FBXIT_StaticMesh;
+    Options->bImportMesh = true;
+    
+    // No skeletal mesh or animation
+    Options->bImportAsSkeletal = false;
+    Options->bImportAnimations = false;
+    Options->bCreatePhysicsAsset = false;
+
+    // More options
+    Options->bImportTextures = true;
+    Options->bImportMaterials = true;
+    Options->bResetToFbxOnMaterialConflict = true;
+    Options->LodNumber = 0;
+
+    // UFbxAssetImportData
+    Options->StaticMeshImportData->ImportTranslation = FVector(0.0f);
+    Options->StaticMeshImportData->ImportRotation = FRotator(0.0f);
+    Options->StaticMeshImportData->ImportUniformScale = 1.0f;
+    Options->StaticMeshImportData->bConvertScene = true;
+    Options->StaticMeshImportData->bForceFrontXAxis = true;
+    Options->StaticMeshImportData->bConvertSceneUnit = true;
+
+    // UFbxMeshImportData
+    Options->StaticMeshImportData->bTransformVertexToAbsolute = false;
+    Options->StaticMeshImportData->bBakePivotInVertex = false;
+    Options->StaticMeshImportData->bImportMeshLODs = true;
+    Options->StaticMeshImportData->NormalImportMethod = EFBXNormalImportMethod::FBXNIM_ComputeNormals;
+    Options->StaticMeshImportData->NormalGenerationMethod = EFBXNormalGenerationMethod::BuiltIn;
+    Options->StaticMeshImportData->bComputeWeightedNormals = true;
+    Options->StaticMeshImportData->bReorderMaterialToFbxOrder = false;
+
+    // UFbxStaticMeshImportData
+    Options->StaticMeshImportData->StaticMeshLODGroup = FName();
+    Options->StaticMeshImportData->VertexColorImportOption = EVertexColorImportOption::Replace;
+    Options->StaticMeshImportData->bRemoveDegenerates = true;
+    Options->StaticMeshImportData->bBuildReversedIndexBuffer = true;
+    Options->StaticMeshImportData->bBuildNanite = true;
+    Options->StaticMeshImportData->bGenerateLightmapUVs = true;
+    Options->StaticMeshImportData->bOneConvexHullPerUCX = true;
+    Options->StaticMeshImportData->bAutoGenerateCollision = true;
+    Options->StaticMeshImportData->bCombineMeshes = true;
+    Options->StaticMeshImportData->DistanceFieldResolutionScale = 0.0f;
+
+
+    UAssetImportTask* Task = CreateImportTask(SourcePath, DestinationPath, nullptr, Options, bIsSucceed, OutInfoMessage);
+    if(!bIsSucceed)
+    {
+        return nullptr;
+    }
+
+    UStaticMesh* Asset = Cast<UStaticMesh>(ProcessImportTask(Task, bIsSucceed, OutInfoMessage));
     if(!bIsSucceed)
     {
         return nullptr;
